@@ -108,6 +108,12 @@ namespace ts {
             category: Diagnostics.Advanced_Options,
             description: Diagnostics.Specify_strategy_for_creating_a_polling_watch_when_it_fails_to_create_using_file_system_events_Colon_FixedInterval_default_PriorityInterval_DynamicPriority,
         },
+        {
+            name: "syncDirectoryWatcherUpdate",
+            type: "boolean",
+            category: Diagnostics.Advanced_Options,
+            description: Diagnostics.Synchronously_update_the_directory_watcher_when_the_watcher_is_invoked_on_platforms_that_don_t_support_recursive_watching_natively,
+        },
     ];
 
     /* @internal */

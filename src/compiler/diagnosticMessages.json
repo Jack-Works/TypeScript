@@ -4160,6 +4160,10 @@
         "category": "Message",
         "code": 6226
     },
+    "Synchronously update the directory watcher when the watcher is invoked on platforms that don't support recursive watching natively.": {
+        "category": "Message",
+        "code": 6227
+    },
 
     "Projects to reference": {
         "category": "Message",
