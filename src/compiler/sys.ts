@@ -546,6 +546,7 @@ namespace ts {
                 }
                 else {
                     // Remove all watches.
+                    sysLog(`sysLog:: removeChildWatches:: ${dirName}`);
                     removeChildWatches(parentWatcher);
                 }
             }
@@ -555,7 +556,7 @@ namespace ts {
             if (!cacheToUpdateChildWatches.has(dirPath)) {
                 cacheToUpdateChildWatches.set(dirPath, { dirName, options });
             }
-            sysLog(`sysLog:: Scheduling:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
+            sysLog(`sysLog:: Scheduling:: onTimerToUpdateChildWatches::  ${dirName} ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
             if (timerToUpdateChildWatches) {
                 host.clearTimeout(timerToUpdateChildWatches);
                 timerToUpdateChildWatches = undefined;
