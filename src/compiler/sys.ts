@@ -469,7 +469,7 @@ namespace ts {
         }
 
         const cache = createMap<HostDirectoryWatcher>();
-        const callbackCache = createMultiMap<DirectoryWatcherCallback>();
+        const callbackCache = createMultiMap<{ dirName: string; callback: DirectoryWatcherCallback; }>();
         const cacheToUpdateChildWatches = createMap<{ dirName: string; options: CompilerOptions | undefined; }>();
         let timerToUpdateChildWatches: any;
 
@@ -494,19 +494,14 @@ namespace ts {
                     watcher: host.watchDirectory(dirName, fileName => {
                         if (isIgnoredPath(fileName)) return;
 
-                        // Call the actual callback
-                        callbackCache.forEach((callbacks, rootDirName) => {
-                            if (rootDirName === dirPath || (startsWith(dirPath, rootDirName) && dirPath[rootDirName.length] === directorySeparator)) {
-                                callbacks.forEach(callback => callback(fileName));
-                            }
-                        });
-
                         // Iterate through existing children and update the watches if needed
                         if (options?.syncDirectoryWatcherUpdate) {
+                            // Call the actual callback
+                            invokeCallbacks(dirPath, fileName);
                             updateChildWatches(dirName, dirPath, options);
                         }
                         else {
-                            nonSyncUpdateChildWatches(dirName, dirPath, options);
+                            nonSyncUpdateChildWatches(dirName, dirPath, options, fileName);
                         }
                     }, /*recursive*/ false, options),
                     refCount: 1,
@@ -516,15 +511,16 @@ namespace ts {
                 updateChildWatches(dirName, dirPath, options);
             }
 
-            if (callback) {
-                callbackCache.add(dirPath, callback);
+            const callbackToAdd = callback && { dirName, callback };
+            if (callbackToAdd) {
+                callbackCache.add(dirPath, callbackToAdd);
             }
 
             return {
                 dirName,
                 close: () => {
                     const directoryWatcher = Debug.assertDefined(cache.get(dirPath));
-                    if (callback) callbackCache.remove(dirPath, callback);
+                    if (callbackToAdd) callbackCache.remove(dirPath, callbackToAdd);
                     directoryWatcher.refCount--;
 
                     if (directoryWatcher.refCount) return;
@@ -536,21 +532,43 @@ namespace ts {
             };
         }
 
-        function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined) {
+        function invokeCallbacks(dirPath: Path, fileNameOrDoneMap: string | Map<true>) {
+            let fileName: string | undefined;
+            let doneMap: Map<true> | undefined;
+            if (isString(fileNameOrDoneMap)) {
+                fileName = fileNameOrDoneMap;
+            }
+            else {
+                doneMap = fileNameOrDoneMap;
+            }
+            // Call the actual callback
+            callbackCache.forEach((callbacks, rootDirName) => {
+                if (doneMap && doneMap.has(rootDirName)) return;
+                if (rootDirName === dirPath || (startsWith(dirPath, rootDirName) && dirPath[rootDirName.length] === directorySeparator)) {
+                    callbacks.forEach(({ callback, dirName }) => callback(fileName || dirName));
+                    if (doneMap) doneMap.set(rootDirName, true);
+                }
+            });
+        }
+
+        function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined, fileName: string) {
             // Iterate through existing children and update the watches if needed
             const parentWatcher = cache.get(dirPath);
             if (parentWatcher) {
                 if (host.directoryExists(dirName)) {
                     // Schedule the update
+                    // Postpone invoke for callbacks ??
                     scheduleUpdateChildWatches(dirName, dirPath, options);
                 }
                 else {
                     // Remove all watches.
+                    invokeCallbacks(dirPath, fileName);
                     sysLog(`sysLog:: removeChildWatches:: ${dirName}`);
                     removeChildWatches(parentWatcher);
                 }
             }
             else {
+                invokeCallbacks(dirPath, fileName);
                 sysLog(`sysLog:: skipping update:: ${dirName}`);
             }
         }
@@ -570,11 +588,15 @@ namespace ts {
         function onTimerToUpdateChildWatches() {
             timerToUpdateChildWatches = undefined;
             sysLog(`sysLog:: start:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size}`);
+            const doneMap = createMap<true>();
             while (!timerToUpdateChildWatches && cacheToUpdateChildWatches.size) {
                 const { value: [dirPath, { dirName, options }], done } = cacheToUpdateChildWatches.entries().next();
                 Debug.assert(!done);
                 cacheToUpdateChildWatches.delete(dirPath);
                 sysLog(`sysLog:: Updating children for:: ${dirName}`);
+                // Because the child refresh is fresh, we would need to invalidate whole root directory being watched
+                // to ensure that all the changes are reflected at this time
+                invokeCallbacks(dirPath as Path, doneMap);
                 updateChildWatches(dirName, dirPath as Path, options);
             }
             sysLog(`sysLog:: complete:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
