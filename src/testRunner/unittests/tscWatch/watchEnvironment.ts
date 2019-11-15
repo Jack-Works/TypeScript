@@ -68,7 +68,11 @@ namespace ts.tscWatch {
                 const projectSrcFolder = `${projectFolder}/src`;
                 const configFile: File = {
                     path: `${projectFolder}/tsconfig.json`,
-                    content: "{}"
+                    content: JSON.stringify({
+                        compilerOptions: {
+                            syncDirectoryWatcherUpdate: true
+                        }
+                    })
                 };
                 const file: File = {
                     path: `${projectSrcFolder}/file1.ts`,
