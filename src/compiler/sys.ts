@@ -494,10 +494,11 @@ namespace ts {
                     watcher: host.watchDirectory(dirName, fileName => {
                         if (isIgnoredPath(fileName)) return;
 
-                        // Iterate through existing children and update the watches if needed
                         if (options?.syncDirectoryWatcherUpdate) {
                             // Call the actual callback
                             invokeCallbacks(dirPath, fileName);
+
+                            // Iterate through existing children and update the watches if needed
                             updateChildWatches(dirName, dirPath, options);
                         }
                         else {
@@ -554,22 +555,13 @@ namespace ts {
         function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined, fileName: string) {
             // Iterate through existing children and update the watches if needed
             const parentWatcher = cache.get(dirPath);
-            if (parentWatcher) {
-                if (host.directoryExists(dirName)) {
-                    // Schedule the update
-                    // Postpone invoke for callbacks ??
-                    scheduleUpdateChildWatches(dirName, dirPath, options);
-                }
-                else {
-                    // Remove all watches.
-                    invokeCallbacks(dirPath, fileName);
-                    sysLog(`sysLog:: removeChildWatches:: ${dirName}`);
-                    removeChildWatches(parentWatcher);
-                }
+            if (parentWatcher && host.directoryExists(dirName)) {
+                // Schedule the update and postpone invoke for callbacks
+                scheduleUpdateChildWatches(dirName, dirPath, options);
             }
             else {
                 invokeCallbacks(dirPath, fileName);
-                sysLog(`sysLog:: skipping update:: ${dirName}`);
+                removeChildWatches(parentWatcher);
             }
         }
 
@@ -577,7 +569,6 @@ namespace ts {
             if (!cacheToUpdateChildWatches.has(dirPath)) {
                 cacheToUpdateChildWatches.set(dirPath, { dirName, options });
             }
-            sysLog(`sysLog:: Scheduling:: onTimerToUpdateChildWatches::  ${dirName} ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
             if (timerToUpdateChildWatches) {
                 host.clearTimeout(timerToUpdateChildWatches);
                 timerToUpdateChildWatches = undefined;
@@ -587,19 +578,20 @@ namespace ts {
 
         function onTimerToUpdateChildWatches() {
             timerToUpdateChildWatches = undefined;
-            sysLog(`sysLog:: start:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size}`);
+            sysLog(`sysLog:: onTimerToUpdateChildWatches:: ${arrayFrom(cacheToUpdateChildWatches.keys())}`);
+            const start = timestamp();
             const doneMap = createMap<true>();
             while (!timerToUpdateChildWatches && cacheToUpdateChildWatches.size) {
                 const { value: [dirPath, { dirName, options }], done } = cacheToUpdateChildWatches.entries().next();
                 Debug.assert(!done);
                 cacheToUpdateChildWatches.delete(dirPath);
-                sysLog(`sysLog:: Updating children for:: ${dirName}`);
                 // Because the child refresh is fresh, we would need to invalidate whole root directory being watched
                 // to ensure that all the changes are reflected at this time
                 invokeCallbacks(dirPath as Path, doneMap);
                 updateChildWatches(dirName, dirPath as Path, options);
             }
-            sysLog(`sysLog:: complete:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
+            const elapsed = timestamp() - start;
+            sysLog(`sysLog:: Elapsed ${elapsed}ms:: onTimerToUpdateChildWatches:: ${arrayFrom(cacheToUpdateChildWatches.keys())} ${timerToUpdateChildWatches}`);
         }
 
         function removeChildWatches(parentWatcher: HostDirectoryWatcher | undefined) {
