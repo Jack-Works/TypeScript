@@ -596,7 +596,7 @@ namespace ts {
                 updateChildWatches(dirName, dirPath as Path, options);
             }
 
-            sysLog(`sysLog:: invokingWatchers:: ${timestamp() - start} ${cacheToUpdateChildWatches.size}`);
+            sysLog(`sysLog:: invokingWatchers:: ${timestamp() - start}ms:: ${cacheToUpdateChildWatches.size}`);
             callbackCache.forEach((callbacks, rootDirName) => {
                 if (invokeMap.has(rootDirName)) {
                     callbacks.forEach(({ callback, dirName }) => callback(dirName));
