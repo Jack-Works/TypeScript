@@ -502,7 +502,7 @@ namespace ts {
                             updateChildWatches(dirName, dirPath, options);
                         }
                         else {
-                            nonSyncUpdateChildWatches(dirName, dirPath, options, fileName);
+                            nonSyncUpdateChildWatches(dirName, dirPath, options);
                         }
                     }, /*recursive*/ false, options),
                     refCount: 1,
@@ -556,7 +556,7 @@ namespace ts {
             });
         }
 
-        function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined, fileName: string) {
+        function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined) {
             // Iterate through existing children and update the watches if needed
             const parentWatcher = cache.get(dirPath);
             if (!parentWatcher || !host.directoryExists(dirName)) {
