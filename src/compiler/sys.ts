@@ -559,14 +559,11 @@ namespace ts {
         function nonSyncUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined, fileName: string) {
             // Iterate through existing children and update the watches if needed
             const parentWatcher = cache.get(dirPath);
-            if (parentWatcher && host.directoryExists(dirName)) {
-                // Schedule the update and postpone invoke for callbacks
-                scheduleUpdateChildWatches(dirName, dirPath, options);
-            }
-            else {
+            if (!parentWatcher || !host.directoryExists(dirName)) {
                 removeChildWatches(parentWatcher);
-                invokeCallbacks(dirPath, fileName);
             }
+            // Schedule the update and postpone invoke for callbacks
+            scheduleUpdateChildWatches(dirName, dirPath, options);
         }
 
         function scheduleUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined) {
