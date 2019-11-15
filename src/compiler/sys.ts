@@ -533,21 +533,25 @@ namespace ts {
             };
         }
 
-        function invokeCallbacks(dirPath: Path, fileNameOrDoneMap: string | Map<true>) {
+        function invokeCallbacks(dirPath: Path, fileNameOrInvokeMap: string | Map<true>) {
             let fileName: string | undefined;
-            let doneMap: Map<true> | undefined;
-            if (isString(fileNameOrDoneMap)) {
-                fileName = fileNameOrDoneMap;
+            let invokeMap: Map<true> | undefined;
+            if (isString(fileNameOrInvokeMap)) {
+                fileName = fileNameOrInvokeMap;
             }
             else {
-                doneMap = fileNameOrDoneMap;
+                invokeMap = fileNameOrInvokeMap;
             }
             // Call the actual callback
             callbackCache.forEach((callbacks, rootDirName) => {
-                if (doneMap && doneMap.has(rootDirName)) return;
+                if (invokeMap && invokeMap.has(rootDirName)) return;
                 if (rootDirName === dirPath || (startsWith(dirPath, rootDirName) && dirPath[rootDirName.length] === directorySeparator)) {
-                    callbacks.forEach(({ callback, dirName }) => callback(fileName || dirName));
-                    if (doneMap) doneMap.set(rootDirName, true);
+                    if (invokeMap) {
+                        invokeMap.set(rootDirName, true);
+                    }
+                    else {
+                        callbacks.forEach(({ callback }) => callback(fileName!));
+                    }
                 }
             });
         }
@@ -560,8 +564,8 @@ namespace ts {
                 scheduleUpdateChildWatches(dirName, dirPath, options);
             }
             else {
-                invokeCallbacks(dirPath, fileName);
                 removeChildWatches(parentWatcher);
+                invokeCallbacks(dirPath, fileName);
             }
         }
 
@@ -578,20 +582,29 @@ namespace ts {
 
         function onTimerToUpdateChildWatches() {
             timerToUpdateChildWatches = undefined;
-            sysLog(`sysLog:: onTimerToUpdateChildWatches:: ${arrayFrom(cacheToUpdateChildWatches.keys())}`);
+            sysLog(`sysLog:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size}`);
             const start = timestamp();
-            const doneMap = createMap<true>();
+            const invokeMap = createMap<true>();
+
             while (!timerToUpdateChildWatches && cacheToUpdateChildWatches.size) {
                 const { value: [dirPath, { dirName, options }], done } = cacheToUpdateChildWatches.entries().next();
                 Debug.assert(!done);
                 cacheToUpdateChildWatches.delete(dirPath);
                 // Because the child refresh is fresh, we would need to invalidate whole root directory being watched
                 // to ensure that all the changes are reflected at this time
-                invokeCallbacks(dirPath as Path, doneMap);
+                invokeCallbacks(dirPath as Path, invokeMap);
                 updateChildWatches(dirName, dirPath as Path, options);
             }
+
+            sysLog(`sysLog:: invokingWatchers:: ${timestamp() - start} ${cacheToUpdateChildWatches.size}`);
+            callbackCache.forEach((callbacks, rootDirName) => {
+                if (invokeMap.has(rootDirName)) {
+                    callbacks.forEach(({ callback, dirName }) => callback(dirName));
+                }
+            });
+
             const elapsed = timestamp() - start;
-            sysLog(`sysLog:: Elapsed ${elapsed}ms:: onTimerToUpdateChildWatches:: ${arrayFrom(cacheToUpdateChildWatches.keys())} ${timerToUpdateChildWatches}`);
+            sysLog(`sysLog:: Elapsed ${elapsed}ms:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
         }
 
         function removeChildWatches(parentWatcher: HostDirectoryWatcher | undefined) {
