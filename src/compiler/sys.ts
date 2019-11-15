@@ -550,6 +550,9 @@ namespace ts {
                     removeChildWatches(parentWatcher);
                 }
             }
+            else {
+                sysLog(`sysLog:: skipping update:: ${dirName}`);
+            }
         }
 
         function scheduleUpdateChildWatches(dirName: string, dirPath: Path, options: CompilerOptions | undefined) {
@@ -571,6 +574,7 @@ namespace ts {
                 const { value: [dirPath, { dirName, options }], done } = cacheToUpdateChildWatches.entries().next();
                 Debug.assert(!done);
                 cacheToUpdateChildWatches.delete(dirPath);
+                sysLog(`sysLog:: Updating children for:: ${dirName}`);
                 updateChildWatches(dirName, dirPath as Path, options);
             }
             sysLog(`sysLog:: complete:: onTimerToUpdateChildWatches:: ${cacheToUpdateChildWatches.size} ${timerToUpdateChildWatches}`);
