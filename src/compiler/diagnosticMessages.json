@@ -4395,6 +4395,10 @@
         "category": "Error",
         "code": 6508
     },
+    "emitExtension contains invalid chars": {
+        "category": "Error",
+        "code": 6509
+    },
 
     "Variable '{0}' implicitly has an '{1}' type.": {
         "category": "Error",
