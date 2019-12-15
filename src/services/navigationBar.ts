@@ -679,7 +679,7 @@ namespace ts.NavigationBar {
             case SyntaxKind.SourceFile:
                 const sourceFile = <SourceFile>node;
                 return isExternalModule(sourceFile)
-                    ? `"${escapeString(getBaseFileName(removeFileExtension(normalizePath(sourceFile.fileName))))}"`
+                    ? `"${escapeString(getBaseFileName(removeFileExtension(normalizePath(sourceFile.fileName), {})))}"`
                     : "<global>";
             case SyntaxKind.ArrowFunction:
             case SyntaxKind.FunctionDeclaration:

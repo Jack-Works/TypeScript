@@ -331,7 +331,7 @@ declare module "fs" {
 
             function createExpectedEmittedFile(file: File): ExpectedFile {
                 return {
-                    path: removeFileExtension(file.path.replace(configDir, outDirFolder)) + Extension.Js,
+                    path: removeFileExtension(file.path.replace(configDir, outDirFolder), {}) + Extension.Js,
                     isExpectedToEmit: true,
                     content: '"use strict";\nexports.__esModule = true;\n' + file.content.replace("import", "var") + "\n"
                 };

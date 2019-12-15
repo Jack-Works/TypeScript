@@ -1592,7 +1592,7 @@ namespace ts {
             return createLiteral(file.moduleName);
         }
         if (!file.isDeclarationFile && (options.out || options.outFile)) {
-            return createLiteral(getExternalModuleNameFromPath(host, file.fileName));
+            return createLiteral(getExternalModuleNameFromPath(host, options, file.fileName));
         }
         return undefined;
     }

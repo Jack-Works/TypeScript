@@ -227,7 +227,7 @@ namespace ts.Completions {
                 location,
                 sourceFile,
                 typeChecker,
-                compilerOptions.target!,
+                compilerOptions,
                 log,
                 completionKind,
                 preferences,
@@ -250,7 +250,7 @@ namespace ts.Completions {
                 location,
                 sourceFile,
                 typeChecker,
-                compilerOptions.target!,
+                compilerOptions,
                 log,
                 completionKind,
                 preferences,
@@ -428,7 +428,7 @@ namespace ts.Completions {
         location: Node | undefined,
         sourceFile: SourceFile,
         typeChecker: TypeChecker,
-        target: ScriptTarget,
+        compilerOptions: CompilerOptions,
         log: Log,
         kind: CompletionKind,
         preferences: UserPreferences,
@@ -446,7 +446,7 @@ namespace ts.Completions {
         const uniques = createMap<true>();
         for (const symbol of symbols) {
             const origin = symbolToOriginInfoMap ? symbolToOriginInfoMap[getSymbolId(symbol)] : undefined;
-            const info = getCompletionEntryDisplayNameForSymbol(symbol, target, origin, kind);
+            const info = getCompletionEntryDisplayNameForSymbol(symbol, compilerOptions, origin, kind);
             if (!info) {
                 continue;
             }
@@ -554,20 +554,20 @@ namespace ts.Completions {
         // completion entry.
         return firstDefined(symbols, (symbol): SymbolCompletion | undefined => {
             const origin = symbolToOriginInfoMap[getSymbolId(symbol)];
-            const info = getCompletionEntryDisplayNameForSymbol(symbol, compilerOptions.target!, origin, completionKind);
+            const info = getCompletionEntryDisplayNameForSymbol(symbol, compilerOptions, origin, completionKind);
             return info && info.name === entryId.name && getSourceFromOrigin(origin) === entryId.source
                 ? { type: "symbol" as const, symbol, location, symbolToOriginInfoMap, previousToken, isJsxInitializer }
                 : undefined;
         }) || { type: "none" };
     }
 
-    function getSymbolName(symbol: Symbol, origin: SymbolOriginInfo | undefined, target: ScriptTarget): string {
+    function getSymbolName(symbol: Symbol, origin: SymbolOriginInfo | undefined, compilerOptions: CompilerOptions): string {
         return origin && originIsExport(origin) && (
             (origin.isDefaultExport && symbol.escapedName === InternalSymbolName.Default) ||
             (symbol.escapedName === InternalSymbolName.ExportEquals))
             // Name of "export default foo;" is "foo". Name of "export default 0" is the filename converted to camelCase.
             ? firstDefined(symbol.declarations, d => isExportAssignment(d) && isIdentifier(d.expression) ? d.expression.text : undefined)
-            || codefix.moduleSymbolToValidIdentifier(origin.moduleSymbol, target)
+            || codefix.moduleSymbolToValidIdentifier(origin.moduleSymbol, compilerOptions)
             : symbol.name;
     }
 
@@ -673,7 +673,7 @@ namespace ts.Completions {
             exportedSymbol,
             moduleSymbol,
             sourceFile,
-            getSymbolName(symbol, symbolOriginInfo, compilerOptions.target!),
+            getSymbolName(symbol, symbolOriginInfo, compilerOptions),
             host,
             program,
             formatContext,
@@ -1353,7 +1353,7 @@ namespace ts.Completions {
 
             if (shouldOfferImportCompletions()) {
                 const lowerCaseTokenText = previousToken && isIdentifier(previousToken) ? previousToken.text.toLowerCase() : "";
-                const autoImportSuggestions = getSymbolsFromOtherSourceFileExports(program.getCompilerOptions().target!, host);
+                const autoImportSuggestions = getSymbolsFromOtherSourceFileExports(host);
                 if (!detailsEntryId && importSuggestionsCache) {
                     importSuggestionsCache.set(sourceFile.fileName, autoImportSuggestions, host.getProjectVersion && host.getProjectVersion());
                 }
@@ -1536,7 +1536,7 @@ namespace ts.Completions {
          *    occur for that symbol---that is, the original symbol is not in Bucket A, so we should include the alias. Move
          *    everything from Bucket C to Bucket A.
          */
-        function getSymbolsFromOtherSourceFileExports(target: ScriptTarget, host: LanguageServiceHost): readonly AutoImportSuggestion[] {
+        function getSymbolsFromOtherSourceFileExports(host: LanguageServiceHost): readonly AutoImportSuggestion[] {
             const cached = importSuggestionsCache && importSuggestionsCache.get(
                 sourceFile.fileName,
                 typeChecker,
@@ -1631,7 +1631,7 @@ namespace ts.Completions {
                 const origin: SymbolOriginInfoExport = { kind: SymbolOriginInfoKind.Export, moduleSymbol, isDefaultExport };
                 results.push({
                     symbol,
-                    symbolName: getSymbolName(symbol, origin, target),
+                    symbolName: getSymbolName(symbol, origin, host.getCompilationSettings()),
                     origin,
                     skipFilter,
                 });
@@ -2382,11 +2382,11 @@ namespace ts.Completions {
     }
     function getCompletionEntryDisplayNameForSymbol(
         symbol: Symbol,
-        target: ScriptTarget,
+        compilerOptions: CompilerOptions,
         origin: SymbolOriginInfo | undefined,
         kind: CompletionKind,
     ): CompletionEntryDisplayNameForSymbol | undefined {
-        const name = getSymbolName(symbol, origin, target);
+        const name = getSymbolName(symbol, origin, compilerOptions);
         if (name === undefined
             // If the symbol is external module, don't show it in the completion list
             // (i.e declare module "http" { const x; } | // <= request completion here, "http" should not be there)
@@ -2397,7 +2397,7 @@ namespace ts.Completions {
         }
 
         const validIdentifierResult: CompletionEntryDisplayNameForSymbol = { name, needsConvertPropertyAccess: false };
-        if (isIdentifierText(name, target)) return validIdentifierResult;
+        if (isIdentifierText(name, compilerOptions.target)) return validIdentifierResult;
         switch (kind) {
             case CompletionKind.MemberLike:
                 return undefined;

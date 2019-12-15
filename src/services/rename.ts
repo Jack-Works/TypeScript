@@ -3,12 +3,12 @@ namespace ts.Rename {
     export function getRenameInfo(program: Program, sourceFile: SourceFile, position: number, options?: RenameInfoOptions): RenameInfo {
         const node = getTouchingPropertyName(sourceFile, position);
         const renameInfo = node && nodeIsEligibleForRename(node)
-            ? getRenameInfoForNode(node, program.getTypeChecker(), sourceFile, declaration => program.isSourceFileDefaultLibrary(declaration.getSourceFile()), options)
+            ? getRenameInfoForNode(node, program.getTypeChecker(), sourceFile, declaration => program.isSourceFileDefaultLibrary(declaration.getSourceFile()), program.getCompilerOptions(), options)
             : undefined;
         return renameInfo || getRenameInfoError(Diagnostics.You_cannot_rename_this_element);
     }
 
-    function getRenameInfoForNode(node: Node, typeChecker: TypeChecker, sourceFile: SourceFile, isDefinedInLibraryFile: (declaration: Node) => boolean, options?: RenameInfoOptions): RenameInfo | undefined {
+    function getRenameInfoForNode(node: Node, typeChecker: TypeChecker, sourceFile: SourceFile, isDefinedInLibraryFile: (declaration: Node) => boolean, compilerOptions: CompilerOptions, options?: RenameInfoOptions): RenameInfo | undefined {
         const symbol = typeChecker.getSymbolAtLocation(node);
         if (!symbol) return;
         // Only allow a symbol to be renamed if it actually has at least one declaration.
@@ -26,7 +26,7 @@ namespace ts.Rename {
         }
 
         if (isStringLiteralLike(node) && tryGetImportFromModuleSpecifier(node)) {
-            return options && options.allowRenameOfImportPath ? getRenameInfoForModule(node, sourceFile, symbol) : undefined;
+            return options && options.allowRenameOfImportPath ? getRenameInfoForModule(node, sourceFile, symbol, compilerOptions) : undefined;
         }
 
         const kind = SymbolDisplay.getSymbolKind(typeChecker, symbol, node);
@@ -38,14 +38,14 @@ namespace ts.Rename {
         return getRenameInfoSuccess(displayName, fullDisplayName, kind, SymbolDisplay.getSymbolModifiers(symbol), node, sourceFile);
     }
 
-    function getRenameInfoForModule(node: StringLiteralLike, sourceFile: SourceFile, moduleSymbol: Symbol): RenameInfo | undefined {
+    function getRenameInfoForModule(node: StringLiteralLike, sourceFile: SourceFile, moduleSymbol: Symbol, compilerOptions: CompilerOptions): RenameInfo | undefined {
         if (!isExternalModuleNameRelative(node.text)) {
             return getRenameInfoError(Diagnostics.You_cannot_rename_a_module_via_a_global_import);
         }
 
         const moduleSourceFile = find(moduleSymbol.declarations, isSourceFile);
         if (!moduleSourceFile) return undefined;
-        const withoutIndex = endsWith(node.text, "/index") || endsWith(node.text, "/index.js") ? undefined : tryRemoveSuffix(removeFileExtension(moduleSourceFile.fileName), "/index");
+        const withoutIndex = endsWith(node.text, "/index") || endsWith(node.text, "/index.js") ? undefined : tryRemoveSuffix(removeFileExtension(moduleSourceFile.fileName, compilerOptions), "/index");
         const name = withoutIndex === undefined ? moduleSourceFile.fileName : withoutIndex;
         const kind = withoutIndex === undefined ? ScriptElementKind.moduleElement : ScriptElementKind.directory;
         const indexAfterLastSlash = node.text.lastIndexOf("/") + 1;
