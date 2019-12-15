@@ -5742,7 +5742,7 @@ namespace ts {
 
     const extensionsToRemove = [Extension.Dts, Extension.Ts, Extension.Js, Extension.Tsx, Extension.Jsx, Extension.Json];
     export function removeFileExtension(path: string, options: CompilerOptions): string {
-        const extra = options && options.emitExtension
+        const extra = options && options.emitExtension;
         const remove: string[] = extra ? (extensionsToRemove as string[]).concat(extra) : extensionsToRemove;
         for (const ext of remove) {
             const extensionless = tryRemoveExtension(path, ext);
