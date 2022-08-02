@@ -7,8 +7,6 @@ module Outer {
 >non_export_var : number
 
     module {
->module : any
-
         var non_export_var = 0;
 >non_export_var : number
 >0 : 0

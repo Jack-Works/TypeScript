@@ -1334,7 +1334,7 @@ namespace ts {
 
     /* @internal */
     export function isFunctionOrModuleBlock(node: Node): boolean {
-        return isSourceFile(node) || isModuleBlock(node) || isBlock(node) && isFunctionLike(node.parent);
+        return isSourceFile(node) || isModuleBlock(node) || isModuleBlockExpression(node) || isBlock(node) && isFunctionLike(node.parent);
     }
 
     // Classes
@@ -1609,6 +1609,7 @@ namespace ts {
             case SyntaxKind.ExpressionWithTypeArguments:
             case SyntaxKind.MetaProperty:
             case SyntaxKind.ImportKeyword: // technically this is only an Expression if it's in a CallExpression
+            case SyntaxKind.ModuleBlockExpression:
                 return true;
             default:
                 return false;

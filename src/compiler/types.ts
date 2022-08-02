@@ -275,6 +275,7 @@ namespace ts {
         AsExpression,
         NonNullExpression,
         MetaProperty,
+        ModuleBlockExpression,
         SyntheticExpression,
         SatisfiesExpression,
 
@@ -1044,6 +1045,7 @@ namespace ts {
         | EnumDeclaration
         | ModuleDeclaration
         | ModuleBlock
+        | ModuleBlockExpression
         | CaseBlock
         | NamespaceExportDeclaration
         | ImportEqualsDeclaration
@@ -3061,6 +3063,7 @@ namespace ts {
         | SourceFile
         | Block
         | ModuleBlock
+        | ModuleBlockExpression
         | CaseOrDefaultClause
         ;
 
@@ -3382,6 +3385,12 @@ namespace ts {
         readonly statements: NodeArray<Statement>;
     }
 
+    export interface ModuleBlockExpression extends PrimaryExpression {
+        readonly kind: SyntaxKind.ModuleBlockExpression;
+        readonly isStatic: boolean;
+        readonly statements: NodeArray<Statement>;
+    }
+
     export type ModuleReference =
         | EntityName
         | ExternalModuleReference
@@ -3394,7 +3403,7 @@ namespace ts {
      */
     export interface ImportEqualsDeclaration extends DeclarationStatement, JSDocContainer {
         readonly kind: SyntaxKind.ImportEqualsDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly name: Identifier;
         readonly isTypeOnly: boolean;
@@ -3419,7 +3428,7 @@ namespace ts {
     // ImportClause information is shown at its declaration below.
     export interface ImportDeclaration extends Statement {
         readonly kind: SyntaxKind.ImportDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly importClause?: ImportClause;
         /** If this is not a StringLiteral it will be a grammar error. */
@@ -3493,7 +3502,7 @@ namespace ts {
 
     export interface ExportDeclaration extends DeclarationStatement, JSDocContainer {
         readonly kind: SyntaxKind.ExportDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly isTypeOnly: boolean;
         /** Will not be assigned in the case of `export * from "foo";` */
@@ -6594,6 +6603,7 @@ namespace ts {
         mapRoot?: string;
         maxNodeModuleJsDepth?: number;
         module?: ModuleKind;
+        moduleBlock?: ModuleBlockEmit;
         moduleResolution?: ModuleResolutionKind;
         moduleSuffixes?: string[];
         moduleDetection?: ModuleDetectionKind;
@@ -6713,6 +6723,14 @@ namespace ts {
         // Node16+ is an amalgam of commonjs (albeit updated) and es2022+, and represents a distinct module system from es2020/esnext
         Node16 = 100,
         NodeNext = 199,
+    }
+
+    export enum ModuleBlockEmit {
+        None = 0,
+        Preserve = 1,
+        ModuleSource = 2,
+        // TODO(module-block):
+        // VirtualModuleRecord = 3,
     }
 
     export const enum JsxEmit {
@@ -6837,7 +6855,7 @@ namespace ts {
         isFilePath?: boolean;                                   // True if option value is a path or fileName
         shortName?: string;                                     // A short mnemonic for convenience - for instance, 'h' can be used in place of 'help'
         description?: DiagnosticMessage;                        // The message describing what the command line switch does.
-        defaultValueDescription?: string | number | boolean | DiagnosticMessage;   // The message describing what the dafault value is. string type is prepared for fixed chosen like "false" which do not need I18n.
+        defaultValueDescription?: string | number | boolean | DiagnosticMessage;   // The message describing what the default value is. string type is prepared for fixed chosen like "false" which do not need I18n.
         paramType?: DiagnosticMessage;                          // The name to be used for a non-boolean option's parameter
         isTSConfigOnly?: boolean;                               // True if option can only be specified via tsconfig.json file
         isCommandLineOnly?: boolean;
@@ -7982,6 +8000,8 @@ namespace ts {
         updateModuleDeclaration(node: ModuleDeclaration, modifiers: readonly Modifier[] | undefined, name: ModuleName, body: ModuleBody | undefined): ModuleDeclaration;
         createModuleBlock(statements: readonly Statement[]): ModuleBlock;
         updateModuleBlock(node: ModuleBlock, statements: readonly Statement[]): ModuleBlock;
+        createModuleBlockExpression(isStatic: boolean, statements: readonly Statement[]): ModuleBlockExpression;
+        updateModuleBlockExpression(node: ModuleBlockExpression, isStatic: boolean, statements: readonly Statement[]): ModuleBlockExpression;
         createCaseBlock(clauses: readonly CaseOrDefaultClause[]): CaseBlock;
         updateCaseBlock(node: CaseBlock, clauses: readonly CaseOrDefaultClause[]): CaseBlock;
         createNamespaceExportDeclaration(name: string | Identifier): NamespaceExportDeclaration;
@@ -8785,6 +8805,7 @@ namespace ts {
         /*@internal*/ preserveSourceNewlines?: boolean;
         /*@internal*/ terminateUnterminatedLiterals?: boolean;
         /*@internal*/ relativeToBuildInfo?: (path: string) => string;
+        /*@internal */ moduleBlock?: ModuleBlockEmit;
     }
 
     /* @internal */

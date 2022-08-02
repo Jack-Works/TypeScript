@@ -554,6 +554,7 @@ namespace ts {
             case SyntaxKind.TypeLiteral:
             case SyntaxKind.Block:
             case SyntaxKind.ModuleBlock:
+            case SyntaxKind.ModuleBlockExpression:
             case SyntaxKind.CaseBlock:
             case SyntaxKind.NamedImports:
             case SyntaxKind.NamedExports:

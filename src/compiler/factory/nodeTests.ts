@@ -591,6 +591,10 @@ namespace ts {
         return node.kind === SyntaxKind.ModuleBlock;
     }
 
+    export function isModuleBlockExpression(node: Node): node is ModuleBlockExpression {
+        return node.kind === SyntaxKind.ModuleBlockExpression;
+    }
+
     export function isCaseBlock(node: Node): node is CaseBlock {
         return node.kind === SyntaxKind.CaseBlock;
     }

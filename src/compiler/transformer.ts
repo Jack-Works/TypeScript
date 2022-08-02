@@ -51,6 +51,10 @@ namespace ts {
         transformers.push(transformLegacyDecorators);
         transformers.push(transformClassFields);
 
+        if (compilerOptions.moduleBlock === ModuleBlockEmit.ModuleSource) {
+            transformers.push(context => transformModuleBlockAsModuleSource(moduleKind, context));
+        }
+
         if (getJSXTransformEnabled(compilerOptions)) {
             transformers.push(transformJsx);
         }

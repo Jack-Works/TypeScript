@@ -411,6 +411,7 @@ namespace ts {
         },
         [SyntaxKind.Block]: forEachChildInBlock,
         [SyntaxKind.ModuleBlock]: forEachChildInBlock,
+        [SyntaxKind.ModuleBlockExpression]: forEachChildInBlock,
         [SyntaxKind.SourceFile]: function forEachChildInSourceFile<T>(node: SourceFile, cbNode: (node: Node) => T | undefined, cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
             return visitNodes(cbNode, cbNodes, node.statements) ||
                 visitNode(cbNode, node.endOfFileToken);
@@ -766,7 +767,7 @@ namespace ts {
             visitNodes(cbNode, cbNodes, node.arguments);
     }
 
-    function forEachChildInBlock<T>(node: Block | ModuleBlock, cbNode: (node: Node) => T | undefined, cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
+    function forEachChildInBlock<T>(node: Block | ModuleBlock | ModuleBlockExpression, cbNode: (node: Node) => T | undefined, cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
         return visitNodes(cbNode, cbNodes, node.statements);
     }
 
@@ -4638,6 +4639,14 @@ namespace ts {
             return false;
         }
 
+        function nextTokenIsOpenBraceOnSameLine() {
+            return nextTokenIsOpenBrace() && !scanner.hasPrecedingLineBreak();
+        }
+
+        function nextTokenIsModuleKeywordSameLine() {
+            return nextToken() === SyntaxKind.ModuleKeyword && !scanner.hasPrecedingLineBreak();
+        }
+
         function nextTokenIsIdentifierOnSameLine() {
             nextToken();
             return !scanner.hasPrecedingLineBreak() && isIdentifier();
@@ -6068,6 +6077,16 @@ namespace ts {
                     return parseTemplateExpression(/* isTaggedTemplate */ false);
                 case SyntaxKind.PrivateIdentifier:
                     return parsePrivateIdentifier();
+                case SyntaxKind.StaticKeyword:
+                    if (lookAhead(nextTokenIsModuleKeywordSameLine)) {
+                        return parseModuleBlockExpression();
+                    }
+                    break;
+                case SyntaxKind.ModuleKeyword:
+                    if (lookAhead(nextTokenIsOpenBraceOnSameLine)) {
+                        return parseModuleBlockExpression();
+                    }
+                    break;
             }
 
             return parseIdentifier(Diagnostics.Expression_expected);
@@ -7592,6 +7611,17 @@ namespace ts {
                 statements = createMissingList<Statement>();
             }
             return finishNode(factory.createModuleBlock(statements), pos);
+        }
+
+        function parseModuleBlockExpression(): ModuleBlockExpression {
+            const pos = getNodePos();
+            const isStatic = token() === SyntaxKind.StaticKeyword;
+            if (isStatic) nextToken();
+            parseExpected(SyntaxKind.ModuleKeyword);
+            parseExpected(SyntaxKind.OpenBraceToken);
+            const statements = parseList(ParsingContext.BlockStatements, parseStatement);
+            parseExpected(SyntaxKind.CloseBraceToken);
+            return finishNode(factory.createModuleBlockExpression(isStatic, statements), pos);
         }
 
         function parseModuleOrNamespaceDeclaration(pos: number, hasJSDoc: boolean, decorators: NodeArray<Decorator> | undefined, modifiers: NodeArray<Modifier> | undefined, flags: NodeFlags): ModuleDeclaration {

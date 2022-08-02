@@ -396,6 +396,7 @@ namespace ts {
                 inlineSourceMap: compilerOptions.inlineSourceMap,
                 inlineSources: compilerOptions.inlineSources,
                 extendedDiagnostics: compilerOptions.extendedDiagnostics,
+                moduleBlock: compilerOptions.moduleBlock,
                 writeBundleFileInfo: !!bundleBuildInfo,
                 relativeToBuildInfo
             };
@@ -457,6 +458,7 @@ namespace ts {
                 onlyPrintJsDocStyle: true,
                 writeBundleFileInfo: !!bundleBuildInfo,
                 recordInternalSection: !!bundleBuildInfo,
+                moduleBlock: compilerOptions.moduleBlock,
                 relativeToBuildInfo
             };
 
@@ -1775,6 +1777,11 @@ namespace ts {
                         return emitSatisfiesExpression(node as SatisfiesExpression);
                     case SyntaxKind.MetaProperty:
                         return emitMetaProperty(node as MetaProperty);
+                    case SyntaxKind.ModuleBlockExpression:
+                        if (printerOptions.moduleBlock === ModuleBlockEmit.ModuleSource) {
+                            return emitModuleBlockAsModuleSource(node as ModuleBlockExpression);
+                        }
+                        return emitModuleBlockExpression(node as ModuleBlockExpression);
                     case SyntaxKind.SyntheticExpression:
                         return Debug.fail("SyntheticExpression should never be printed.");
 
@@ -3391,6 +3398,50 @@ namespace ts {
         }
 
         function emitModuleBlock(node: ModuleBlock) {
+            pushNameGenerationScope(node);
+            forEach(node.statements, generateNames);
+            emitBlockStatements(node, /*forceSingleLine*/ isEmptyBlock(node));
+            popNameGenerationScope(node);
+        }
+
+        function emitModuleBlockAsModuleSource(node: ModuleBlockExpression) {
+            Debug.assert(node.isStatic); // non-static should be transformed into `new Module(static module {}, ...)`
+
+            const format = node.statements.length === 0 || getEmitFlags(node) & EmitFlags.SingleLine ? ListFormat.SingleLineBlockStatements : ListFormat.MultiLineBlockStatements;
+
+            pushNameGenerationScope(node);
+            forEach(node.statements, generateNames);
+            {
+                emitTokenWithComment(SyntaxKind.NewKeyword, node.pos, writePunctuation, /*contextNode*/ node);
+                writeSpace();
+                emitIdentifier(factory.createIdentifier("ModuleSource"));
+                writePunctuation("(");
+                writePunctuation("`");
+                // TODO(module-block): hack
+                const oldWriter = writer;
+                writer = createTextWriter(newLine);
+                emitList(node, node.statements, format);
+                const text = writer.getText().replace(/(\\|`)/g, "\\$1").split(newLine);
+                writer = oldWriter;
+                const needNewLine = text.length > 1;
+                if (needNewLine) writer.writeLine();
+                for (const t of text) {
+                    writer.write(t);
+                    if (needNewLine) writer.writeLine();
+                }
+                if (needNewLine) writer.writeLine();
+                writePunctuation("`");
+                emitTokenWithComment(SyntaxKind.CloseParenToken, node.statements.end, writePunctuation, /*contextNode*/ node, /*indentLeading*/ !!(format & ListFormat.MultiLine));
+            }
+            popNameGenerationScope(node);
+        }
+
+        function emitModuleBlockExpression(node: ModuleBlockExpression) {
+            if (node.isStatic) {
+                emitTokenWithComment(SyntaxKind.StaticKeyword, node.pos, writeKeyword, node);
+                writeSpace();
+            }
+            writeKeyword("module");
             pushNameGenerationScope(node);
             forEach(node.statements, generateNames);
             emitBlockStatements(node, /*forceSingleLine*/ isEmptyBlock(node));

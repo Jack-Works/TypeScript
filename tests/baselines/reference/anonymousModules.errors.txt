@@ -1,34 +1,69 @@
-tests/cases/compiler/anonymousModules.ts(1,1): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-tests/cases/compiler/anonymousModules.ts(1,8): error TS1437: Namespace must be given a name.
-tests/cases/compiler/anonymousModules.ts(4,2): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-tests/cases/compiler/anonymousModules.ts(4,9): error TS1437: Namespace must be given a name.
-tests/cases/compiler/anonymousModules.ts(10,2): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-tests/cases/compiler/anonymousModules.ts(10,9): error TS1437: Namespace must be given a name.
+tests/cases/compiler/anonymousModules.ts(1,1): error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+tests/cases/compiler/anonymousModules.ts(1,1): error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
+tests/cases/compiler/anonymousModules.ts(4,2): error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+tests/cases/compiler/anonymousModules.ts(4,2): error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
+tests/cases/compiler/anonymousModules.ts(10,2): error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+tests/cases/compiler/anonymousModules.ts(10,2): error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
+tests/cases/compiler/anonymousModules.ts(11,11): error TS20000: 'bar' is declared outside of the module block, which is not accessible inside the module block.
 
 
-==== tests/cases/compiler/anonymousModules.ts (6 errors) ====
+==== tests/cases/compiler/anonymousModules.ts (7 errors) ====
     module {
-    ~~~~~~
-!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-           ~
-!!! error TS1437: Namespace must be given a name.
+    ~~~~~~~~
+    ~~~~~~~~
     	export var foo = 1;
+    ~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~
+    
+    
     
     	module {
-    	~~~~~~
-!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-    	       ~
-!!! error TS1437: Namespace must be given a name.
+    ~~~~~~~~~
+    ~~~~~~~~~
+    	~~~~~~~~
+    	~~~~~~~~
     		export var bar = 1;
+    ~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~
     	}
+    ~~
+    ~~
+    ~~
+!!! error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+    ~~
+!!! error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
+    
+    
     
     	var bar = 2;
+    ~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~
+    
+    
     
     	module {
-    	~~~~~~
-!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-    	       ~
-!!! error TS1437: Namespace must be given a name.
+    ~~~~~~~~~
+    ~~~~~~~~~
+    	~~~~~~~~
+    	~~~~~~~~
     		var x = bar;
+    ~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~
+    		        ~~~
+!!! error TS20000: 'bar' is declared outside of the module block, which is not accessible inside the module block.
     	}
+    ~~
+    ~~
+    ~~
+!!! error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+    ~~
+!!! error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
     }
+    ~
+!!! error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+    ~
+!!! error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option

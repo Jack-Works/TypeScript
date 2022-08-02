@@ -6147,7 +6147,7 @@
         "category": "Error",
         "code": 7035
     },
-    "Dynamic import's specifier must be of type 'string', but here has type '{0}'.": {
+    "Dynamic import's specifier must be of type 'string' or a module block, but here has type '{0}'.": {
         "category": "Error",
         "code": 7036
     },
@@ -7524,5 +7524,21 @@
     "The value '{0}' cannot be used here.": {
         "category": "Error",
         "code": 18050
+    },
+    "'{0}' is declared outside of the module block, which is not accessible inside the module block.": {
+        "category": "Error",
+        "code": 20000
+    },
+    "Specify how module block is emitted.": {
+        "category": "Message",
+        "code": 20001
+    },
+    "Cannot use module block unless the moduleBlock flag is provided.": {
+        "category": "Error",
+        "code": 20002
+    },
+    "A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option": {
+        "category": "Error",
+        "code": 20003
     }
 }

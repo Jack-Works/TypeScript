@@ -2041,6 +2041,7 @@ namespace ts.refactor.extractSymbol {
             case SyntaxKind.Block:
             case SyntaxKind.SourceFile:
             case SyntaxKind.ModuleBlock:
+            case SyntaxKind.ModuleBlockExpression:
             case SyntaxKind.CaseClause:
                 return true;
             default:

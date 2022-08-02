@@ -62,6 +62,7 @@
         "transformers/es5.ts",
         "transformers/generators.ts",
         "transformers/module/module.ts",
+        "transformers/module/moduleBlock.ts",
         "transformers/module/system.ts",
         "transformers/module/esnextAnd2015.ts",
         "transformers/module/node.ts",

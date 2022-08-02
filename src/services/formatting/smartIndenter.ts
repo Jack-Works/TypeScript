@@ -590,6 +590,7 @@ namespace ts.formatting {
                 case SyntaxKind.ArrayLiteralExpression:
                 case SyntaxKind.Block:
                 case SyntaxKind.ModuleBlock:
+                case SyntaxKind.ModuleBlockExpression:
                 case SyntaxKind.ObjectLiteralExpression:
                 case SyntaxKind.TypeLiteral:
                 case SyntaxKind.MappedType:

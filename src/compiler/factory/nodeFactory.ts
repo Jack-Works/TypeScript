@@ -287,6 +287,8 @@ namespace ts {
             updateModuleDeclaration,
             createModuleBlock,
             updateModuleBlock,
+            createModuleBlockExpression,
+            updateModuleBlockExpression,
             createCaseBlock,
             updateCaseBlock,
             createNamespaceExportDeclaration,
@@ -4000,6 +4002,23 @@ namespace ts {
         function updateModuleBlock(node: ModuleBlock, statements: readonly Statement[]) {
             return node.statements !== statements
                 ? update(createModuleBlock(statements), node)
+                : node;
+        }
+
+        // @api
+        function createModuleBlockExpression(isStatic: boolean, statement: readonly Statement[]) {
+            const node = createBaseNode<ModuleBlockExpression>(SyntaxKind.ModuleBlockExpression);
+            node.isStatic = isStatic;
+            node.statements = createNodeArray(statement);
+            node.transformFlags |= propagateChildrenFlags(node.statements);
+            node.transformFlags |= TransformFlags.ContainsESNext;
+            return node;
+        }
+
+        // @api
+        function updateModuleBlockExpression(node: ModuleBlockExpression, isStatic: boolean, statement: readonly Statement[]) {
+            return node.statements !== statement || node.isStatic !== isStatic
+                ? update(createModuleBlockExpression(isStatic, statement), node)
                 : node;
         }
 

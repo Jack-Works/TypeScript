@@ -1100,6 +1100,12 @@ namespace ts {
                 nodesVisitor(node.statements, visitor, isStatement));
         },
 
+        [SyntaxKind.ModuleBlockExpression]: function visitEachChildOfModuleBlockExpression(node, visitor, context, nodesVisitor, _nodeVisitor, _tokenVisitor) {
+            return context.factory.updateModuleBlockExpression(node,
+                node.isStatic,
+                nodesVisitor(node.statements, visitor, isStatement));
+        },
+
         [SyntaxKind.CaseBlock]: function visitEachChildOfCaseBlock(node, visitor, context, nodesVisitor, _nodeVisitor, _tokenVisitor) {
             return context.factory.updateCaseBlock(node,
                 nodesVisitor(node.clauses, visitor, isCaseOrDefaultClause));

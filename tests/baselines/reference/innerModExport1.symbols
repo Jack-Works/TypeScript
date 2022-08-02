@@ -4,11 +4,11 @@ module Outer {
 
     // inner mod 1
     var non_export_var: number;
->non_export_var : Symbol(non_export_var, Decl(innerModExport1.ts, 3, 7), Decl(innerModExport1.ts, 5, 11))
+>non_export_var : Symbol(non_export_var, Decl(innerModExport1.ts, 3, 7))
 
     module {
         var non_export_var = 0;
->non_export_var : Symbol(non_export_var, Decl(innerModExport1.ts, 3, 7), Decl(innerModExport1.ts, 5, 11))
+>non_export_var : Symbol(non_export_var, Decl(innerModExport1.ts, 5, 11))
 
         export var export_var = 1;
 >export_var : Symbol(export_var, Decl(innerModExport1.ts, 6, 18))
@@ -29,7 +29,5 @@ module Outer {
 }
 
 Outer.ExportFunc();
->Outer.ExportFunc : Symbol(Outer.ExportFunc, Decl(innerModExport1.ts, 8, 46))
 >Outer : Symbol(Outer, Decl(innerModExport1.ts, 0, 0))
->ExportFunc : Symbol(Outer.ExportFunc, Decl(innerModExport1.ts, 8, 46))
 

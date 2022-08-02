@@ -14,6 +14,11 @@ namespace ts {
         "react-jsxdev": JsxEmit.ReactJSXDev,
     }));
 
+    const moduleBlockOptionMap = new Map(getEntries({
+        "preserve": ModuleBlockEmit.Preserve,
+        "module-source": ModuleBlockEmit.ModuleSource,
+    }));
+
     /* @internal */
     export const inverseJsxOptionMap = new Map(arrayFrom(mapIterator(jsxOptionMap.entries(), ([key, value]: [string, JsxEmit]) => ["" + value, key] as const)));
 
@@ -93,7 +98,8 @@ namespace ts {
         ["esnext.bigint", "lib.es2020.bigint.d.ts"],
         ["esnext.string", "lib.es2022.string.d.ts"],
         ["esnext.promise", "lib.es2021.promise.d.ts"],
-        ["esnext.weakref", "lib.es2021.weakref.d.ts"]
+        ["esnext.weakref", "lib.es2021.weakref.d.ts"],
+        ["esnext.module", "lib.esnext.module.d.ts"],
     ];
 
     /**
@@ -447,6 +453,17 @@ namespace ts {
         // Basic
         targetOptionDeclaration,
         moduleOptionDeclaration,
+        {
+            name: "moduleBlock",
+            type: moduleBlockOptionMap,
+            paramType: Diagnostics.KIND,
+            affectsEmit: true,
+            affectsSemanticDiagnostics: true,
+            showInSimplifiedHelpView: true,
+            category: Diagnostics.Language_and_Environment,
+            description: Diagnostics.Specify_how_module_block_is_emitted,
+            defaultValueDescription: undefined,
+        },
         {
             name: "lib",
             type: "list",

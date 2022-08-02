@@ -208,6 +208,7 @@ namespace ts.formatting {
             case SyntaxKind.SourceFile:
             case SyntaxKind.Block:
             case SyntaxKind.ModuleBlock:
+            case SyntaxKind.ModuleBlockExpression:
                 return rangeContainsRange((parent as Block).statements, node);
             case SyntaxKind.CatchClause:
                 return rangeContainsRange((parent as CatchClause).block.statements, node);

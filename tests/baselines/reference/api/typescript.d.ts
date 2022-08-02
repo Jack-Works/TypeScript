@@ -339,133 +339,134 @@ declare namespace ts {
         AsExpression = 231,
         NonNullExpression = 232,
         MetaProperty = 233,
-        SyntheticExpression = 234,
-        SatisfiesExpression = 235,
-        TemplateSpan = 236,
-        SemicolonClassElement = 237,
-        Block = 238,
-        EmptyStatement = 239,
-        VariableStatement = 240,
-        ExpressionStatement = 241,
-        IfStatement = 242,
-        DoStatement = 243,
-        WhileStatement = 244,
-        ForStatement = 245,
-        ForInStatement = 246,
-        ForOfStatement = 247,
-        ContinueStatement = 248,
-        BreakStatement = 249,
-        ReturnStatement = 250,
-        WithStatement = 251,
-        SwitchStatement = 252,
-        LabeledStatement = 253,
-        ThrowStatement = 254,
-        TryStatement = 255,
-        DebuggerStatement = 256,
-        VariableDeclaration = 257,
-        VariableDeclarationList = 258,
-        FunctionDeclaration = 259,
-        ClassDeclaration = 260,
-        InterfaceDeclaration = 261,
-        TypeAliasDeclaration = 262,
-        EnumDeclaration = 263,
-        ModuleDeclaration = 264,
-        ModuleBlock = 265,
-        CaseBlock = 266,
-        NamespaceExportDeclaration = 267,
-        ImportEqualsDeclaration = 268,
-        ImportDeclaration = 269,
-        ImportClause = 270,
-        NamespaceImport = 271,
-        NamedImports = 272,
-        ImportSpecifier = 273,
-        ExportAssignment = 274,
-        ExportDeclaration = 275,
-        NamedExports = 276,
-        NamespaceExport = 277,
-        ExportSpecifier = 278,
-        MissingDeclaration = 279,
-        ExternalModuleReference = 280,
-        JsxElement = 281,
-        JsxSelfClosingElement = 282,
-        JsxOpeningElement = 283,
-        JsxClosingElement = 284,
-        JsxFragment = 285,
-        JsxOpeningFragment = 286,
-        JsxClosingFragment = 287,
-        JsxAttribute = 288,
-        JsxAttributes = 289,
-        JsxSpreadAttribute = 290,
-        JsxExpression = 291,
-        CaseClause = 292,
-        DefaultClause = 293,
-        HeritageClause = 294,
-        CatchClause = 295,
-        AssertClause = 296,
-        AssertEntry = 297,
-        ImportTypeAssertionContainer = 298,
-        PropertyAssignment = 299,
-        ShorthandPropertyAssignment = 300,
-        SpreadAssignment = 301,
-        EnumMember = 302,
-        UnparsedPrologue = 303,
-        UnparsedPrepend = 304,
-        UnparsedText = 305,
-        UnparsedInternalText = 306,
-        UnparsedSyntheticReference = 307,
-        SourceFile = 308,
-        Bundle = 309,
-        UnparsedSource = 310,
-        InputFiles = 311,
-        JSDocTypeExpression = 312,
-        JSDocNameReference = 313,
-        JSDocMemberName = 314,
-        JSDocAllType = 315,
-        JSDocUnknownType = 316,
-        JSDocNullableType = 317,
-        JSDocNonNullableType = 318,
-        JSDocOptionalType = 319,
-        JSDocFunctionType = 320,
-        JSDocVariadicType = 321,
-        JSDocNamepathType = 322,
-        JSDoc = 323,
+        ModuleBlockExpression = 234,
+        SyntheticExpression = 235,
+        SatisfiesExpression = 236,
+        TemplateSpan = 237,
+        SemicolonClassElement = 238,
+        Block = 239,
+        EmptyStatement = 240,
+        VariableStatement = 241,
+        ExpressionStatement = 242,
+        IfStatement = 243,
+        DoStatement = 244,
+        WhileStatement = 245,
+        ForStatement = 246,
+        ForInStatement = 247,
+        ForOfStatement = 248,
+        ContinueStatement = 249,
+        BreakStatement = 250,
+        ReturnStatement = 251,
+        WithStatement = 252,
+        SwitchStatement = 253,
+        LabeledStatement = 254,
+        ThrowStatement = 255,
+        TryStatement = 256,
+        DebuggerStatement = 257,
+        VariableDeclaration = 258,
+        VariableDeclarationList = 259,
+        FunctionDeclaration = 260,
+        ClassDeclaration = 261,
+        InterfaceDeclaration = 262,
+        TypeAliasDeclaration = 263,
+        EnumDeclaration = 264,
+        ModuleDeclaration = 265,
+        ModuleBlock = 266,
+        CaseBlock = 267,
+        NamespaceExportDeclaration = 268,
+        ImportEqualsDeclaration = 269,
+        ImportDeclaration = 270,
+        ImportClause = 271,
+        NamespaceImport = 272,
+        NamedImports = 273,
+        ImportSpecifier = 274,
+        ExportAssignment = 275,
+        ExportDeclaration = 276,
+        NamedExports = 277,
+        NamespaceExport = 278,
+        ExportSpecifier = 279,
+        MissingDeclaration = 280,
+        ExternalModuleReference = 281,
+        JsxElement = 282,
+        JsxSelfClosingElement = 283,
+        JsxOpeningElement = 284,
+        JsxClosingElement = 285,
+        JsxFragment = 286,
+        JsxOpeningFragment = 287,
+        JsxClosingFragment = 288,
+        JsxAttribute = 289,
+        JsxAttributes = 290,
+        JsxSpreadAttribute = 291,
+        JsxExpression = 292,
+        CaseClause = 293,
+        DefaultClause = 294,
+        HeritageClause = 295,
+        CatchClause = 296,
+        AssertClause = 297,
+        AssertEntry = 298,
+        ImportTypeAssertionContainer = 299,
+        PropertyAssignment = 300,
+        ShorthandPropertyAssignment = 301,
+        SpreadAssignment = 302,
+        EnumMember = 303,
+        UnparsedPrologue = 304,
+        UnparsedPrepend = 305,
+        UnparsedText = 306,
+        UnparsedInternalText = 307,
+        UnparsedSyntheticReference = 308,
+        SourceFile = 309,
+        Bundle = 310,
+        UnparsedSource = 311,
+        InputFiles = 312,
+        JSDocTypeExpression = 313,
+        JSDocNameReference = 314,
+        JSDocMemberName = 315,
+        JSDocAllType = 316,
+        JSDocUnknownType = 317,
+        JSDocNullableType = 318,
+        JSDocNonNullableType = 319,
+        JSDocOptionalType = 320,
+        JSDocFunctionType = 321,
+        JSDocVariadicType = 322,
+        JSDocNamepathType = 323,
+        JSDoc = 324,
         /** @deprecated Use SyntaxKind.JSDoc */
-        JSDocComment = 323,
-        JSDocText = 324,
-        JSDocTypeLiteral = 325,
-        JSDocSignature = 326,
-        JSDocLink = 327,
-        JSDocLinkCode = 328,
-        JSDocLinkPlain = 329,
-        JSDocTag = 330,
-        JSDocAugmentsTag = 331,
-        JSDocImplementsTag = 332,
-        JSDocAuthorTag = 333,
-        JSDocDeprecatedTag = 334,
-        JSDocClassTag = 335,
-        JSDocPublicTag = 336,
-        JSDocPrivateTag = 337,
-        JSDocProtectedTag = 338,
-        JSDocReadonlyTag = 339,
-        JSDocOverrideTag = 340,
-        JSDocCallbackTag = 341,
-        JSDocEnumTag = 342,
-        JSDocParameterTag = 343,
-        JSDocReturnTag = 344,
-        JSDocThisTag = 345,
-        JSDocTypeTag = 346,
-        JSDocTemplateTag = 347,
-        JSDocTypedefTag = 348,
-        JSDocSeeTag = 349,
-        JSDocPropertyTag = 350,
-        SyntaxList = 351,
-        NotEmittedStatement = 352,
-        PartiallyEmittedExpression = 353,
-        CommaListExpression = 354,
-        MergeDeclarationMarker = 355,
-        EndOfDeclarationMarker = 356,
-        SyntheticReferenceExpression = 357,
-        Count = 358,
+        JSDocComment = 324,
+        JSDocText = 325,
+        JSDocTypeLiteral = 326,
+        JSDocSignature = 327,
+        JSDocLink = 328,
+        JSDocLinkCode = 329,
+        JSDocLinkPlain = 330,
+        JSDocTag = 331,
+        JSDocAugmentsTag = 332,
+        JSDocImplementsTag = 333,
+        JSDocAuthorTag = 334,
+        JSDocDeprecatedTag = 335,
+        JSDocClassTag = 336,
+        JSDocPublicTag = 337,
+        JSDocPrivateTag = 338,
+        JSDocProtectedTag = 339,
+        JSDocReadonlyTag = 340,
+        JSDocOverrideTag = 341,
+        JSDocCallbackTag = 342,
+        JSDocEnumTag = 343,
+        JSDocParameterTag = 344,
+        JSDocReturnTag = 345,
+        JSDocThisTag = 346,
+        JSDocTypeTag = 347,
+        JSDocTemplateTag = 348,
+        JSDocTypedefTag = 349,
+        JSDocSeeTag = 350,
+        JSDocPropertyTag = 351,
+        SyntaxList = 352,
+        NotEmittedStatement = 353,
+        PartiallyEmittedExpression = 354,
+        CommaListExpression = 355,
+        MergeDeclarationMarker = 356,
+        EndOfDeclarationMarker = 357,
+        SyntheticReferenceExpression = 358,
+        Count = 359,
         FirstAssignment = 63,
         LastAssignment = 78,
         FirstCompoundAssignment = 64,
@@ -490,13 +491,13 @@ declare namespace ts {
         LastTemplateToken = 17,
         FirstBinaryOperator = 29,
         LastBinaryOperator = 78,
-        FirstStatement = 240,
-        LastStatement = 256,
+        FirstStatement = 241,
+        LastStatement = 257,
         FirstNode = 163,
-        FirstJSDocNode = 312,
-        LastJSDocNode = 350,
-        FirstJSDocTagNode = 330,
-        LastJSDocTagNode = 350,
+        FirstJSDocNode = 313,
+        LastJSDocNode = 351,
+        FirstJSDocTagNode = 331,
+        LastJSDocTagNode = 351,
     }
     export type TriviaSyntaxKind = SyntaxKind.SingleLineCommentTrivia | SyntaxKind.MultiLineCommentTrivia | SyntaxKind.NewLineTrivia | SyntaxKind.WhitespaceTrivia | SyntaxKind.ShebangTrivia | SyntaxKind.ConflictMarkerTrivia;
     export type LiteralSyntaxKind = SyntaxKind.NumericLiteral | SyntaxKind.BigIntLiteral | SyntaxKind.StringLiteral | SyntaxKind.JsxText | SyntaxKind.JsxTextAllWhiteSpaces | SyntaxKind.RegularExpressionLiteral | SyntaxKind.NoSubstitutionTemplateLiteral;
@@ -1461,7 +1462,7 @@ declare namespace ts {
         readonly kind: SyntaxKind.MissingDeclaration;
         readonly name?: Identifier;
     }
-    export type BlockLike = SourceFile | Block | ModuleBlock | CaseOrDefaultClause;
+    export type BlockLike = SourceFile | Block | ModuleBlock | ModuleBlockExpression | CaseOrDefaultClause;
     export interface Block extends Statement {
         readonly kind: SyntaxKind.Block;
         readonly statements: NodeArray<Statement>;
@@ -1660,6 +1661,11 @@ declare namespace ts {
         readonly parent: ModuleDeclaration;
         readonly statements: NodeArray<Statement>;
     }
+    export interface ModuleBlockExpression extends PrimaryExpression {
+        readonly kind: SyntaxKind.ModuleBlockExpression;
+        readonly isStatic: boolean;
+        readonly statements: NodeArray<Statement>;
+    }
     export type ModuleReference = EntityName | ExternalModuleReference;
     /**
      * One of:
@@ -1668,7 +1674,7 @@ declare namespace ts {
      */
     export interface ImportEqualsDeclaration extends DeclarationStatement, JSDocContainer {
         readonly kind: SyntaxKind.ImportEqualsDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly name: Identifier;
         readonly isTypeOnly: boolean;
@@ -1681,7 +1687,7 @@ declare namespace ts {
     }
     export interface ImportDeclaration extends Statement {
         readonly kind: SyntaxKind.ImportDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly importClause?: ImportClause;
         /** If this is not a StringLiteral it will be a grammar error. */
@@ -1726,7 +1732,7 @@ declare namespace ts {
     }
     export interface ExportDeclaration extends DeclarationStatement, JSDocContainer {
         readonly kind: SyntaxKind.ExportDeclaration;
-        readonly parent: SourceFile | ModuleBlock;
+        readonly parent: SourceFile | ModuleBlock | ModuleBlockExpression;
         readonly modifiers?: NodeArray<Modifier>;
         readonly isTypeOnly: boolean;
         /** Will not be assigned in the case of `export * from "foo";` */
@@ -3027,6 +3033,7 @@ declare namespace ts {
         mapRoot?: string;
         maxNodeModuleJsDepth?: number;
         module?: ModuleKind;
+        moduleBlock?: ModuleBlockEmit;
         moduleResolution?: ModuleResolutionKind;
         moduleSuffixes?: string[];
         moduleDetection?: ModuleDetectionKind;
@@ -3123,6 +3130,11 @@ declare namespace ts {
         ESNext = 99,
         Node16 = 100,
         NodeNext = 199
+    }
+    export enum ModuleBlockEmit {
+        None = 0,
+        Preserve = 1,
+        ModuleSource = 2
     }
     export enum JsxEmit {
         None = 0,
@@ -3665,6 +3677,8 @@ declare namespace ts {
         updateModuleDeclaration(node: ModuleDeclaration, modifiers: readonly Modifier[] | undefined, name: ModuleName, body: ModuleBody | undefined): ModuleDeclaration;
         createModuleBlock(statements: readonly Statement[]): ModuleBlock;
         updateModuleBlock(node: ModuleBlock, statements: readonly Statement[]): ModuleBlock;
+        createModuleBlockExpression(isStatic: boolean, statements: readonly Statement[]): ModuleBlockExpression;
+        updateModuleBlockExpression(node: ModuleBlockExpression, isStatic: boolean, statements: readonly Statement[]): ModuleBlockExpression;
         createCaseBlock(clauses: readonly CaseOrDefaultClause[]): CaseBlock;
         updateCaseBlock(node: CaseBlock, clauses: readonly CaseOrDefaultClause[]): CaseBlock;
         createNamespaceExportDeclaration(name: string | Identifier): NamespaceExportDeclaration;
@@ -4774,6 +4788,7 @@ declare namespace ts {
     function isEnumDeclaration(node: Node): node is EnumDeclaration;
     function isModuleDeclaration(node: Node): node is ModuleDeclaration;
     function isModuleBlock(node: Node): node is ModuleBlock;
+    function isModuleBlockExpression(node: Node): node is ModuleBlockExpression;
     function isCaseBlock(node: Node): node is CaseBlock;
     function isNamespaceExportDeclaration(node: Node): node is NamespaceExportDeclaration;
     function isImportEqualsDeclaration(node: Node): node is ImportEqualsDeclaration;

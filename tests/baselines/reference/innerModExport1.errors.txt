@@ -1,24 +1,39 @@
-tests/cases/compiler/innerModExport1.ts(5,5): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-tests/cases/compiler/innerModExport1.ts(5,12): error TS1437: Namespace must be given a name.
+tests/cases/compiler/innerModExport1.ts(5,5): error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+tests/cases/compiler/innerModExport1.ts(5,5): error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
+tests/cases/compiler/innerModExport1.ts(19,7): error TS2339: Property 'ExportFunc' does not exist on type 'typeof Outer'.
 
 
-==== tests/cases/compiler/innerModExport1.ts (2 errors) ====
+==== tests/cases/compiler/innerModExport1.ts (3 errors) ====
     module Outer {
     
         // inner mod 1
         var non_export_var: number;
         module {
-        ~~~~~~
-!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-               ~
-!!! error TS1437: Namespace must be given a name.
+        ~~~~~~~~
+        ~~~~~~~~
             var non_export_var = 0;
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             export var export_var = 1;
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    
     
             function NonExportFunc() { return 0; }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    
     
             export function ExportFunc() { return 0; }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         }
+    ~~~~~
+!!! error TS20002: Cannot use module block unless the moduleBlock flag is provided.
+    ~~~~~
+!!! error TS20003: A module block must return a Module or ModuleSource. Make sure you have a declaration for Module and ModuleSource, or include ESNext.module in your lib option
     
         export var outer_var_export = 0;
         export function outerFuncExport() { return 0; }
@@ -26,3 +41,5 @@ tests/cases/compiler/innerModExport1.ts(5,12): error TS1437: Namespace must be g
     }
     
     Outer.ExportFunc();
+          ~~~~~~~~~~
+!!! error TS2339: Property 'ExportFunc' does not exist on type 'typeof Outer'.

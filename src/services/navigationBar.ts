@@ -806,6 +806,7 @@ namespace ts.NavigationBar {
 
                 switch (navigationBarNodeKind(item.parent!)) {
                     case SyntaxKind.ModuleBlock:
+                    case SyntaxKind.ModuleBlockExpression:
                     case SyntaxKind.SourceFile:
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.Constructor:

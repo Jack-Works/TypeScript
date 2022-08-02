@@ -1001,6 +1001,8 @@ namespace ts {
         let deferredGlobalBigIntType: ObjectType | undefined;
         let deferredGlobalNaNSymbol: Symbol | undefined;
         let deferredGlobalRecordSymbol: Symbol | undefined;
+        let deferredGlobalModuleType: ObjectType | undefined;
+        let deferredGlobalModuleSourceType: ObjectType | undefined;
 
         const allPotentiallyUnusedIdentifiers = new Map<Path, PotentiallyUnusedIdentifier[]>(); // key is file name
 
@@ -1869,6 +1871,7 @@ namespace ts {
             const errorLocation = location;
             let grandparent: Node;
             let isInExternalModule = false;
+            let crossModuleBlockBoundary = false;
 
             loop: while (location) {
                 if (name === "const" && isConstAssertion(location)) {
@@ -1935,11 +1938,13 @@ namespace ts {
                 switch (location.kind) {
                     case SyntaxKind.SourceFile:
                         if (!isExternalOrCommonJsModule(location as SourceFile)) break;
+                        // falls through
+                    case SyntaxKind.ModuleBlockExpression:
                         isInExternalModule = true;
                         // falls through
                     case SyntaxKind.ModuleDeclaration:
-                        const moduleExports = getSymbolOfNode(location as SourceFile | ModuleDeclaration)?.exports || emptySymbols;
-                        if (location.kind === SyntaxKind.SourceFile || (isModuleDeclaration(location) && location.flags & NodeFlags.Ambient && !isGlobalScopeAugmentation(location))) {
+                        const moduleExports = getSymbolOfNode(location as SourceFile | ModuleDeclaration | ModuleBlockExpression)?.exports || emptySymbols;
+                        if (location.kind === SyntaxKind.SourceFile || location.kind === SyntaxKind.ModuleBlockExpression || (isModuleDeclaration(location) && location.flags & NodeFlags.Ambient && !isGlobalScopeAugmentation(location))) {
 
                             // It's an external module. First see if the module has an export default and if the local
                             // name of that export default matches.
@@ -2167,9 +2172,15 @@ namespace ts {
                     lastSelfReferenceLocation = location;
                 }
                 lastLocation = location;
+                if (location.kind === SyntaxKind.ModuleBlockExpression) crossModuleBlockBoundary = true;
+
                 location = isJSDocTemplateTag(location) ? getEffectiveContainerForJSDocTemplateTag(location) || location.parent :
                     isJSDocParameterTag(location) || isJSDocReturnTag(location) ? getHostSignatureFromJSDoc(location) || location.parent :
                     location.parent;
+            }
+
+            if (result && crossModuleBlockBoundary && originalLocation?.parent && !isTypeNode(originalLocation.parent)) {
+                error(errorLocation, Diagnostics._0_is_declared_outside_of_the_module_block_which_is_not_accessible_inside_the_module_block, unescapeLeadingUnderscores(name));
             }
 
             // We just climbed up parents looking for the name, meaning that we started in a descendant node of `lastLocation`.
@@ -2243,6 +2254,11 @@ namespace ts {
                                 suggestion = getSuggestedSymbolForNonexistentSymbol(originalLocation, name, meaning);
                                 const isGlobalScopeAugmentationDeclaration = suggestion?.valueDeclaration && isAmbientModule(suggestion.valueDeclaration) && isGlobalScopeAugmentation(suggestion.valueDeclaration);
                                 if (isGlobalScopeAugmentationDeclaration) {
+                                    suggestion = undefined;
+                                }
+                                if (name === "module" && suggestion === getGlobalModuleType().symbol) {
+                                    // CommonJS's "module" is much more common.
+                                    // Let's suggest user to install @types/node instead of "Did you mean Module?"
                                     suggestion = undefined;
                                 }
                                 if (suggestion) {
@@ -3581,9 +3597,13 @@ namespace ts {
         }
 
         function resolveExternalModuleNameWorker(location: Node, moduleReferenceExpression: Expression, moduleNotFoundError: DiagnosticMessage | undefined, isForAugmentation = false): Symbol | undefined {
-            return isStringLiteralLike(moduleReferenceExpression)
-                ? resolveExternalModule(location, moduleReferenceExpression.text, moduleNotFoundError, moduleReferenceExpression, isForAugmentation)
-                : undefined;
+            if (isStringLiteralLike(moduleReferenceExpression)) {
+                return resolveExternalModule(location, moduleReferenceExpression.text, moduleNotFoundError, moduleReferenceExpression, isForAugmentation);
+            }
+            if (isForAugmentation) return undefined;
+            // const type = getTypeOfExpression(moduleReferenceExpression);
+            // TODO(module-block): get the module type from the module block instance.
+            return undefined;
         }
 
         function resolveExternalModule(location: Node, moduleReference: string, moduleNotFoundError: DiagnosticMessage | undefined, errorNode: Node, isForAugmentation = false): Symbol | undefined {
@@ -14354,6 +14374,18 @@ namespace ts {
             return deferredGlobalRecordSymbol === unknownSymbol ? undefined : deferredGlobalRecordSymbol;
         }
 
+        function getGlobalModuleType() {
+            return (deferredGlobalModuleType ||= getGlobalType("Module" as __String, /*arity*/ 0, /*reportErrors*/ false)) || emptyObjectType;
+        }
+
+        function hasGlobalModuleType() {
+            return getGlobalModuleType() === emptyObjectType;
+        }
+
+        function getGlobalModuleSourceType() {
+            return (deferredGlobalModuleSourceType ||= getGlobalType("ModuleSource" as __String, /*arity*/ 0, /*reportErrors*/ false)) || emptyObjectType;
+        }
+
         /**
          * Instantiates a global type that is generic with some element type, and returns that instantiation.
          */
@@ -24521,7 +24553,7 @@ namespace ts {
         }
 
         function reportFlowControlError(node: Node) {
-            const block = findAncestor(node, isFunctionOrModuleBlock) as Block | ModuleBlock | SourceFile;
+            const block = findAncestor(node, isFunctionOrModuleBlock) as Block | ModuleBlock | ModuleBlockExpression | SourceFile;
             const sourceFile = getSourceFileOfNode(node);
             const span = getSpanOfTokenAtPosition(sourceFile, block.statements.pos);
             diagnostics.add(createFileDiagnostic(sourceFile, span.start, span.length, Diagnostics.The_containing_function_or_module_body_is_too_large_for_control_flow_analysis));
@@ -32354,8 +32386,14 @@ namespace ts {
                 checkExpressionCached(node.arguments[i]);
             }
 
-            if (specifierType.flags & TypeFlags.Undefined || specifierType.flags & TypeFlags.Null || !isTypeAssignableTo(specifierType, stringType)) {
-                error(specifier, Diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_but_here_has_type_0, typeToString(specifierType));
+            // TODO(module-block): add a module type instead of the apparent Module type.
+            if (
+                specifierType.flags & TypeFlags.Undefined ||
+                specifierType.flags & TypeFlags.Null ||
+                !isTypeAssignableTo(specifierType, stringType) ||
+                (hasGlobalModuleType() && !isTypeAssignableTo(specifierType, getGlobalModuleType()))
+            ) {
+                error(specifier, Diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_or_a_module_block_but_here_has_type_0, typeToString(specifierType));
             }
 
             if (optionsType) {
@@ -33049,6 +33087,15 @@ namespace ts {
             const members = createSymbolTable([targetPropertySymbol]);
             symbol.members = members;
             return createAnonymousType(symbol, members, emptyArray, emptyArray, emptyArray);
+        }
+
+        function createModuleBlockExpressionType(node: ModuleBlockExpression) {
+            const instanceType = node.isStatic ? getGlobalModuleType() : getGlobalModuleSourceType();
+            if (instanceType === emptyObjectType) {
+                error(node, Diagnostics.A_module_block_must_return_a_Module_or_ModuleSource_Make_sure_you_have_a_declaration_for_Module_and_ModuleSource_or_include_ESNext_module_in_your_lib_option);
+                return errorType;
+            }
+            return instanceType;
         }
 
         function getReturnTypeFromBody(func: FunctionLikeDeclaration, checkMode?: CheckMode): Type {
@@ -35436,6 +35483,8 @@ namespace ts {
                     return undefinedWideningType;
                 case SyntaxKind.YieldExpression:
                     return checkYieldExpression(node as YieldExpression);
+                case SyntaxKind.ModuleBlockExpression:
+                    return checkModuleBlockExpression(node as ModuleBlockExpression);
                 case SyntaxKind.SyntheticExpression:
                     return checkSyntheticExpression(node as SyntheticExpression);
                 case SyntaxKind.JsxExpression:
@@ -41165,6 +41214,18 @@ namespace ts {
             }
         }
 
+        function checkModuleBlockExpression(node: ModuleBlockExpression) {
+            if ((compilerOptions.moduleBlock || ModuleBlockEmit.None) === ModuleBlockEmit.None) {
+                error(node, Diagnostics.Cannot_use_module_block_unless_the_moduleBlock_flag_is_provided);
+            }
+
+            const saveFlowAnalysisDisabled = flowAnalysisDisabled;
+            forEach(node.statements, checkSourceElement);
+            flowAnalysisDisabled = saveFlowAnalysisDisabled;
+            // TODO(module-block): add a module type instead of the apparent Module type.
+            return createModuleBlockExpressionType(node);
+        }
+
         function checkModuleDeclaration(node: ModuleDeclaration) {
             if (node.body) {
                 checkSourceElement(node.body);
@@ -41349,7 +41410,7 @@ namespace ts {
                 return false;
             }
             const inAmbientExternalModule = node.parent.kind === SyntaxKind.ModuleBlock && isAmbientModule(node.parent.parent);
-            if (node.parent.kind !== SyntaxKind.SourceFile && !inAmbientExternalModule) {
+            if (node.parent.kind === SyntaxKind.ModuleBlock && !inAmbientExternalModule) {
                 error(moduleName, node.kind === SyntaxKind.ExportDeclaration ?
                     Diagnostics.Export_declarations_are_not_permitted_in_a_namespace :
                     Diagnostics.Import_declarations_in_a_namespace_cannot_reference_a_module);
@@ -41714,7 +41775,7 @@ namespace ts {
         }
 
         function checkGrammarModuleElementContext(node: Statement, errorMessage: DiagnosticMessage): boolean {
-            const isInAppropriateContext = node.parent.kind === SyntaxKind.SourceFile || node.parent.kind === SyntaxKind.ModuleBlock || node.parent.kind === SyntaxKind.ModuleDeclaration;
+            const isInAppropriateContext = node.parent.kind === SyntaxKind.SourceFile || node.parent.kind === SyntaxKind.ModuleBlock || node.parent.kind === SyntaxKind.ModuleDeclaration || node.parent.kind === SyntaxKind.ModuleBlockExpression;
             if (!isInAppropriateContext) {
                 grammarErrorOnFirstToken(node, errorMessage);
             }
@@ -44653,7 +44714,7 @@ namespace ts {
                 case SyntaxKind.MissingDeclaration:
                     return true;
                 default:
-                    if (node.parent.kind === SyntaxKind.ModuleBlock || node.parent.kind === SyntaxKind.SourceFile) {
+                    if (node.parent.kind === SyntaxKind.ModuleBlock || node.parent.kind === SyntaxKind.ModuleBlockExpression|| node.parent.kind === SyntaxKind.SourceFile) {
                         return false;
                     }
                     switch (node.kind) {

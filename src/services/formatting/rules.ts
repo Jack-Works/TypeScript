@@ -552,6 +552,7 @@ namespace ts.formatting {
             case SyntaxKind.CaseBlock:
             case SyntaxKind.ObjectLiteralExpression:
             case SyntaxKind.ModuleBlock:
+            case SyntaxKind.ModuleBlockExpression:
                 return true;
         }
 
@@ -621,6 +622,7 @@ namespace ts.formatting {
             case SyntaxKind.EnumDeclaration:
             case SyntaxKind.CatchClause:
             case SyntaxKind.ModuleBlock:
+            case SyntaxKind.ModuleBlockExpression:
             case SyntaxKind.SwitchStatement:
                 return true;
             case SyntaxKind.Block: {

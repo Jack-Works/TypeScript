@@ -845,6 +845,7 @@ namespace ts {
                 }
                 case SyntaxKind.Block:
                 case SyntaxKind.ModuleBlock:
+                case SyntaxKind.ModuleBlockExpression:
                     bindEachFunctionsFirst((node as Block).statements);
                     break;
                 case SyntaxKind.BindingElement:
@@ -1842,6 +1843,7 @@ namespace ts {
                 case SyntaxKind.IndexSignature:
                     return ContainerFlags.IsContainer | ContainerFlags.HasLocals;
 
+                case SyntaxKind.ModuleBlockExpression:
                 case SyntaxKind.SourceFile:
                     return ContainerFlags.IsContainer | ContainerFlags.IsControlFlowContainer | ContainerFlags.HasLocals;
 
@@ -1918,6 +1920,7 @@ namespace ts {
                 // symbol table depending on if it is static or not). We defer to specialized
                 // handlers to take care of declaring these child members.
                 case SyntaxKind.ModuleDeclaration:
+                case SyntaxKind.ModuleBlockExpression:
                     return declareModuleMember(node, symbolFlags, symbolExcludes);
 
                 case SyntaxKind.SourceFile:
@@ -2086,6 +2089,9 @@ namespace ts {
         function bindBlockScopedDeclaration(node: Declaration, symbolFlags: SymbolFlags, symbolExcludes: SymbolFlags) {
             switch (blockScopeContainer.kind) {
                 case SyntaxKind.ModuleDeclaration:
+                    declareModuleMember(node, symbolFlags, symbolExcludes);
+                    break;
+                case SyntaxKind.ModuleBlockExpression:
                     declareModuleMember(node, symbolFlags, symbolExcludes);
                     break;
                 case SyntaxKind.SourceFile:
@@ -2318,6 +2324,7 @@ namespace ts {
                 // Report error if function is not top level function declaration
                 if (blockScopeContainer.kind !== SyntaxKind.SourceFile &&
                     blockScopeContainer.kind !== SyntaxKind.ModuleDeclaration &&
+                    blockScopeContainer.kind !== SyntaxKind.ModuleBlockExpression &&
                     !isFunctionLikeOrClassStaticBlockDeclaration(blockScopeContainer)) {
                     // We check first if the name is inside class declaration or class expression; if so give explicit message
                     // otherwise report generic error message.
@@ -2645,6 +2652,9 @@ namespace ts {
                 case SyntaxKind.FunctionExpression:
                 case SyntaxKind.ArrowFunction:
                     return bindFunctionExpression(node as FunctionExpression);
+                case SyntaxKind.ModuleBlockExpression:
+                    inStrictMode = true;
+                    return bindModuleBlockExpression(node as ModuleBlockExpression);
 
                 case SyntaxKind.CallExpression:
                     const assignmentKind = getAssignmentDeclarationKind(node as CallExpression);
@@ -2758,6 +2768,14 @@ namespace ts {
 
         function bindSourceFileAsExternalModule() {
             bindAnonymousDeclaration(file, SymbolFlags.ValueModule, `"${removeFileExtension(file.fileName)}"` as __String);
+        }
+
+        function bindModuleBlockExpression(node: ModuleBlockExpression) {
+            const symbol = createSymbol(SymbolFlags.ValueModule, `"${removeFileExtension(file.fileName)}".module block` as __String);
+            symbol.exports = createSymbolTable();
+            node.symbol = symbol;
+            return symbol;
+            // Do not set parent on this symbol.
         }
 
         function bindExportAssignment(node: ExportAssignment) {

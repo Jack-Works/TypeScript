@@ -1713,6 +1713,7 @@ namespace ts {
                 case SyntaxKind.IndexSignature:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.SourceFile:
+                case SyntaxKind.ModuleBlockExpression:
                     return node;
             }
         }
@@ -1752,7 +1753,7 @@ namespace ts {
             node = node.parent;
         }
         const container = getThisContainer(node, /*includeArrowFunctions*/ true);
-        return isSourceFile(container);
+        return isSourceFile(container) || isModuleBlockExpression(container);
     }
 
     export function getNewTargetContainer(node: Node) {
@@ -7596,7 +7597,8 @@ namespace ts {
             case SyntaxKind.CaseClause:
             case SyntaxKind.DefaultClause:
             case SyntaxKind.ModuleBlock:
-                return (parent as Block | CaseOrDefaultClause | ModuleBlock).statements;
+            case SyntaxKind.ModuleBlockExpression:
+                return (parent as Block | CaseOrDefaultClause | ModuleBlock | ModuleBlockExpression).statements;
             case SyntaxKind.CaseBlock:
                 return (parent as CaseBlock).clauses;
             case SyntaxKind.ClassDeclaration:
