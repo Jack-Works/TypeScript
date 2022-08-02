@@ -1001,8 +1001,8 @@ namespace ts {
         let deferredGlobalBigIntType: ObjectType | undefined;
         let deferredGlobalNaNSymbol: Symbol | undefined;
         let deferredGlobalRecordSymbol: Symbol | undefined;
-        let deferredGlobalModuleType: ObjectType | undefined;
-        let deferredGlobalModuleSourceType: ObjectType | undefined;
+        let deferredGlobalModuleType: GenericType | undefined;
+        let deferredGlobalModuleSourceType: GenericType | undefined;
 
         const allPotentiallyUnusedIdentifiers = new Map<Path, PotentiallyUnusedIdentifier[]>(); // key is file name
 
@@ -3588,6 +3588,15 @@ namespace ts {
             }
         }
 
+        function resolveModuleBlock(type: Type): Symbol | undefined {
+            if (type.flags & TypeFlags.Object && (type as ObjectType).objectFlags & ObjectFlags.Reference) {
+                if (type.symbol !== getGlobalModuleType().symbol) return undefined;
+                const target = getTypeArguments(type as TypeReference);
+                return target[0]?.symbol;
+            }
+            return undefined;
+        }
+
         function resolveExternalModuleName(location: Node, moduleReferenceExpression: Expression, ignoreErrors?: boolean): Symbol | undefined {
             const isClassic = getEmitModuleResolutionKind(compilerOptions) === ModuleResolutionKind.Classic;
             const errorMessage = isClassic?
@@ -3601,8 +3610,7 @@ namespace ts {
                 return resolveExternalModule(location, moduleReferenceExpression.text, moduleNotFoundError, moduleReferenceExpression, isForAugmentation);
             }
             if (isForAugmentation) return undefined;
-            // const type = getTypeOfExpression(moduleReferenceExpression);
-            // TODO(module-block): get the module type from the module block instance.
+            if (hasGlobalModuleType()) return resolveModuleBlock(getTypeOfExpression(moduleReferenceExpression));
             return undefined;
         }
 
@@ -14375,15 +14383,15 @@ namespace ts {
         }
 
         function getGlobalModuleType() {
-            return (deferredGlobalModuleType ||= getGlobalType("Module" as __String, /*arity*/ 0, /*reportErrors*/ false)) || emptyObjectType;
+            return (deferredGlobalModuleType ||= getGlobalType("Module" as __String, /*arity*/ 1, /*reportErrors*/ false)) || emptyGenericType;
         }
 
         function hasGlobalModuleType() {
-            return getGlobalModuleType() === emptyObjectType;
+            return getGlobalModuleType() !== emptyGenericType;
         }
 
         function getGlobalModuleSourceType() {
-            return (deferredGlobalModuleSourceType ||= getGlobalType("ModuleSource" as __String, /*arity*/ 0, /*reportErrors*/ false)) || emptyObjectType;
+            return (deferredGlobalModuleSourceType ||= getGlobalType("ModuleSource" as __String, /*arity*/ 1, /*reportErrors*/ false)) || emptyGenericType;
         }
 
         /**
@@ -32386,13 +32394,14 @@ namespace ts {
                 checkExpressionCached(node.arguments[i]);
             }
 
-            // TODO(module-block): add a module type instead of the apparent Module type.
             if (
                 specifierType.flags & TypeFlags.Undefined ||
                 specifierType.flags & TypeFlags.Null ||
-                !isTypeAssignableTo(specifierType, stringType) ||
-                (hasGlobalModuleType() && !isTypeAssignableTo(specifierType, getGlobalModuleType()))
-            ) {
+                hasGlobalModuleType() ?
+                    !isTypeAssignableTo(specifierType, stringType) && !resolveModuleBlock(specifierType) :
+                    !isTypeAssignableTo(specifierType, stringType)
+            )
+            {
                 error(specifier, Diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_or_a_module_block_but_here_has_type_0, typeToString(specifierType));
             }
 
@@ -33090,12 +33099,12 @@ namespace ts {
         }
 
         function createModuleBlockExpressionType(node: ModuleBlockExpression) {
-            const instanceType = node.isStatic ? getGlobalModuleType() : getGlobalModuleSourceType();
-            if (instanceType === emptyObjectType) {
+            const instanceType = node.isStatic ? getGlobalModuleSourceType() : getGlobalModuleType();
+            if (instanceType === emptyGenericType) {
                 error(node, Diagnostics.A_module_block_must_return_a_Module_or_ModuleSource_Make_sure_you_have_a_declaration_for_Module_and_ModuleSource_or_include_ESNext_module_in_your_lib_option);
                 return errorType;
             }
-            return instanceType;
+            return createTypeReference(instanceType, [createObjectType(ObjectFlags.Anonymous, node.symbol)]);
         }
 
         function getReturnTypeFromBody(func: FunctionLikeDeclaration, checkMode?: CheckMode): Type {
@@ -41222,7 +41231,6 @@ namespace ts {
             const saveFlowAnalysisDisabled = flowAnalysisDisabled;
             forEach(node.statements, checkSourceElement);
             flowAnalysisDisabled = saveFlowAnalysisDisabled;
-            // TODO(module-block): add a module type instead of the apparent Module type.
             return createModuleBlockExpressionType(node);
         }
 

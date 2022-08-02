@@ -1661,7 +1661,7 @@ declare namespace ts {
         readonly parent: ModuleDeclaration;
         readonly statements: NodeArray<Statement>;
     }
-    export interface ModuleBlockExpression extends PrimaryExpression {
+    export interface ModuleBlockExpression extends PrimaryExpression, Declaration {
         readonly kind: SyntaxKind.ModuleBlockExpression;
         readonly isStatic: boolean;
         readonly statements: NodeArray<Statement>;

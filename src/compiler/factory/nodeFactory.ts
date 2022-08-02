@@ -4011,7 +4011,6 @@ namespace ts {
             node.isStatic = isStatic;
             node.statements = createNodeArray(statement);
             node.transformFlags |= propagateChildrenFlags(node.statements);
-            node.transformFlags |= TransformFlags.ContainsESNext;
             return node;
         }
 

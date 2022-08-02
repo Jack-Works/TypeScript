@@ -219,6 +219,7 @@ namespace ts {
         let inAssignmentPattern = false;
 
         let symbolCount = 0;
+        let moduleBlockCount = 0;
 
         let Symbol: new (flags: SymbolFlags, name: __String) => Symbol;
         let classifiableNames: Set<__String>;
@@ -243,6 +244,7 @@ namespace ts {
             inStrictMode = bindInStrictMode(file, opts);
             classifiableNames = new Set();
             symbolCount = 0;
+            moduleBlockCount = 0;
 
             Symbol = objectAllocator.getSymbolConstructor();
 
@@ -2771,11 +2773,13 @@ namespace ts {
         }
 
         function bindModuleBlockExpression(node: ModuleBlockExpression) {
-            const symbol = createSymbol(SymbolFlags.ValueModule, `"${removeFileExtension(file.fileName)}".module block` as __String);
+            const symbol = createSymbol(SymbolFlags.ValueModule, `"${removeFileExtension(file.fileName)}#module-block-${moduleBlockCount}"` as __String);
+            symbol.valueDeclaration = node;
+            symbol.declarations = [node];
+            moduleBlockCount++;
             symbol.exports = createSymbolTable();
             node.symbol = symbol;
             return symbol;
-            // Do not set parent on this symbol.
         }
 
         function bindExportAssignment(node: ExportAssignment) {
