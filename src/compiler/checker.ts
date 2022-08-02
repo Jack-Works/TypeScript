@@ -32397,11 +32397,10 @@ namespace ts {
             if (
                 specifierType.flags & TypeFlags.Undefined ||
                 specifierType.flags & TypeFlags.Null ||
-                hasGlobalModuleType() ?
+                (hasGlobalModuleType() ?
                     !isTypeAssignableTo(specifierType, stringType) && !resolveModuleBlock(specifierType) :
-                    !isTypeAssignableTo(specifierType, stringType)
-            )
-            {
+                    !isTypeAssignableTo(specifierType, stringType))
+            ) {
                 error(specifier, Diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_or_a_module_block_but_here_has_type_0, typeToString(specifierType));
             }
 
